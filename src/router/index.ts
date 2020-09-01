@@ -1,30 +1,75 @@
-import Vue from "vue";
-import VueRouter, { RouteConfig } from "vue-router";
-import Home from "../views/Home.vue";
+import Vue from 'vue';
+import VueRouter, { RouteConfig } from 'vue-router';
+import { calendarRoutes } from '@/router/calendar/calendar';
+import { profileStore } from '@/store/profile/profile';
 
 Vue.use(VueRouter);
 
 const routes: Array<RouteConfig> = [
   {
-    path: "/",
-    name: "Home",
-    component: Home
+    path: '/',
+    name: 'home',
+    component: () => import(/* webpackChunkName: "home" */ '@/views/Home.vue'),
+    meta: {
+      title: 'home',
+    },
+  },
+  ...calendarRoutes,
+  {
+    path: '/profile',
+    name: 'profile',
+    component: () =>
+      import(/* webpackChunkName: "profile" */ '@/views/Profile.vue'),
+    meta: {
+      title: 'profile',
+    },
   },
   {
-    path: "/about",
-    name: "About",
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
+    path: '/share',
+    name: 'share',
     component: () =>
-      import(/* webpackChunkName: "about" */ "../views/About.vue")
-  }
+      import(/* webpackChunkName: "share" */ '@/views/Share.vue'),
+    meta: {
+      title: 'share',
+    },
+  },
+  {
+    path: '/sign-in',
+    name: 'sign-in',
+    component: () =>
+      import(/* webpackChunkName: "signIn" */ '@/views/SignIn.vue'),
+    meta: {
+      title: 'sign-in',
+    },
+  },
 ];
 
 const router = new VueRouter({
-  mode: "history",
+  mode: 'history',
   base: process.env.BASE_URL,
-  routes
+  routes,
+});
+
+router.afterEach(to => {
+  if (!to.meta.title) {
+    return;
+  }
+
+  document.title = to.meta.title;
+});
+
+router.beforeEach((to, from, next) => {
+  if (to.path === '/sign-in') {
+    next();
+    return;
+  }
+
+  if (profileStore.getProfile) {
+    next();
+    return;
+  }
+
+  next('/sign-in');
 });
 
 export default router;
